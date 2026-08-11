@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60,
+        "includeFiles": [
+          "index.html",
+          "compose.html",
+          "posts.html",
+          "order.html",
+          "styles.css",
+          "compose.css",
+          "order.css",
+          "i18n.js",
+          "compose.js",
+          "script.js",
+          "order.js",
+          "menu.json"
+        ]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server.js"
+    }
+  ]
+}
