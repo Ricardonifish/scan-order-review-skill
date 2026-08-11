@@ -35,9 +35,21 @@ Collect missing items briefly; do not block if optional.
 **Optional**
 - Hours, address, table/QR examples
 - Categories, option groups (size/ice/sweetness)
-- Social links (Xiaohongshu / TikTok / Instagram)
-- Brand colors / emoji per item
+- Social links (Xiaohongshu / TikTok / Instagram / Official site)
+- **Visual / background materials** (see below)
 - GitHub username, Vercel team (if not already logged in)
+
+### Visual / background materials (often forgotten)
+
+Layout shell is **fixed** (一点点-style). Brand assets change.
+
+Collect if available:
+- Primary (and optional secondary) brand hex colors
+- Hero/banner background image path or URL
+- Circular logo image path or URL
+- Short note for hero art (cup / tea mug / custom)
+
+Rules: [references/visual-shell.md](references/visual-shell.md)
 
 Intake checklist: [references/materials.md](references/materials.md)  
 Menu schema: [references/menu-schema.md](references/menu-schema.md)  
@@ -94,9 +106,11 @@ npm install
 ### 3) Apply materials
 
 1. Edit `menu.json` (store + categories + items + optionGroups).
-2. Update social URLs in `index.html` if provided.
-3. Keep bilingual fields when possible (`name` / `nameZh`).
-4. Do **not** add homepage hint text like `扫码进店 → 网页点单 → …` unless asked.
+2. Update social URLs / labels in `index.html` if provided.
+3. Apply **visual shell**: keep black page + white Rate cards; swap hero/logo/wordmark/primary color from materials ([references/visual-shell.md](references/visual-shell.md)).
+4. Keep bilingual fields when possible (`name` / `nameZh`).
+5. Do **not** add homepage hint text like `扫码进店 → 网页点单 → …` unless asked.
+6. Do **not** reuse Starbucks green cup art for a non-Starbucks brand.
 
 ### 4) Env
 
