@@ -14,33 +14,40 @@ Paste into chat when installing this skill on another AI:
    - 小红书：
    - TikTok / 官网：
    - Instagram：
-7. 【视觉 / 背景素材】（重要：布局固定为一点点式黑底壳，只换品牌）
-   - 品牌主色 hex：
-   - 品牌辅色 hex（可选）：
-   - 头图/Banner 背景图（本地路径或 URL，可选）：
-   - 圆形 Logo 图（本地路径或 URL，可选）：
-   - 头图示意（杯子/茶饮 CSS 或说明，可选）：
-   - Rate us 区：保持白卡片黑底（默认是）；按钮用品牌主色
+7. 【视觉】二选一或组合（布局壳固定：黑底 + 头图 + 圆 Logo + 白 Rate 卡片）
+   A. 颜色模式（告诉 AI 喜好，让它设计色板）：
+      - 风格关键词（茶感/甜酷/极简/复古…）：
+      - 喜欢的主色/辅色（可模糊说「墨绿+奶茶金」）：
+      - 忌讳色（可选）：
+   B. 上传素材模式：
+      - Logo 文件路径或 URL：
+      - 网页/头图背景 路径或 URL：
+      - 其他（favicon 等，可选）：
 8. 智谱 Key（ZHIPU_API_KEY，用于评价润色）：
-9. GitHub 仓库名（可选，默认 scan-order-store）：
+9. GitHub 仓库名（可选）：
 10. 是否公开部署到 Vercel：是 / 否
 ```
 
-Minimal example（一点点）：
+### 例 1：只要 AI 配色
 
 ```text
-店铺中文名：1点点
-店铺英文名：A LITTLE TEA
-营业时间：10:00–22:00
-品牌主色：#1A1A1A
-辅色：#2F5D50
-头图说明：深色 banner + 带蒸汽的杯子图标（中间数字 1）
-圆形 Logo：1点点 字标
-菜单：
-茶饮 | 一声乌龙 | Oolong Tea | 14 | 清香回甘 | 人气 | 要冰量甜度
-茶饮 | 奶茶三兄弟 | Milk Tea | 16 | 经典奶茶 |  | 要冰量甜度杯型
-ZHIPU_API_KEY：（粘贴）
+品牌：1点点 / A LITTLE TEA
+颜色模式：茶感深色，主色偏墨绿，辅色米金，不要星巴克绿。先出色板再改网页。
+菜单：……
+ZHIPU_API_KEY：……
 公开部署：是
 ```
 
-说明：不提供头图时，AI 用品牌色做深色渐变头图，**页面仍为黑底 + 白 Rate 卡片**，不要做成星巴克绿底整页。
+### 例 2：自己上传素材
+
+```text
+品牌：某某奶茶
+Logo：C:\Users\me\Desktop\logo.png
+头图背景：C:\Users\me\Desktop\hero.jpg
+颜色：可按 Logo 自动提色微调
+菜单：……
+公开部署：是
+```
+
+配套设计 skill（装得越多网页越好看）：见 [companion-design-skills.md](companion-design-skills.md)  
+颜色/上传细则：见 [brand-look.md](brand-look.md)
