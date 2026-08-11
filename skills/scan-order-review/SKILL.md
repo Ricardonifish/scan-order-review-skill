@@ -1,103 +1,59 @@
 ---
 name: scan-order-review
 description: >-
-  One-shot build and deploy a QR-scan web mini-program: Heytea-style in-page ordering
-  (menu.json + cart + checkout), link-in-bio home, AI review compose, and Xiaohongshu
-  publish handoff. Use when the user provides store/menu materials and wants a deployable
-  webpage, or mentions 扫码点单, 喜茶点单, menu.json, 一键部署, Vercel link-in-bio order page.
+  One-shot build/deploy a QR scan-to-order web mini-program (一点点-style shell):
+  menu.json cart checkout, link-in-bio, AI review polish, Xiaohongshu copy+open.
+  Supports AI color design or uploaded logo/hero assets with /frontend-design.
+  Use when user mentions 扫码点单, 一点点, 喜茶点单, 一键部署, menu.json, 配色,
+  上传logo/背景, Vercel order page, or gives store materials to ship a page.
 ---
 
-# Scan · Order · Review (one-shot deploy)
+# Scan · Order · Review
 
-You turn **user-provided materials** into a working mobile web app and **deploy it**.
+Turn **store materials** into a mobile web app and **deploy** it.  
+Always **copy `template/`** — do not rebuild from scratch.
 
-This skill ships with a ready template at repo root `template/` (or `../template/` relative to this skill). Prefer **copy + customize template** over rewriting from scratch.
+Template path: repo `template/` (clone https://github.com/Ricardonifish/scan-order-review-skill if missing).
 
-## End state
+## Route (pick one)
 
-User can open:
+| User intent | Do this |
+|-------------|---------|
+| New store / 一键部署 | Full workflow below |
+| Only menu/prices | Edit `menu.json` → smoke → redeploy |
+| Only look (colors/logo) | [brand-look.md](references/brand-look.md) + [visual-shell.md](references/visual-shell.md) → redeploy |
+| Only publish/review bugs | [xhs-publish.md](references/xhs-publish.md) |
 
-- `/` — brand link-in-bio (follow / rate / order CTA)
-- `/order.html?from=qr&table=A8` — scan-to-order mini-app
-- `/compose.html?platform=xiaohongshu` — AI polish → copy → open XHS publish page
+## Non‑negotiables
 
-Deployed on Vercel with public access (no login wall).
+- **Shell fixed**: black page · hero · round logo · white social pills · white Rate cards. See [visual-shell.md](references/visual-shell.md).
+- **Brand flexible**: Mode A colors / Mode B uploads / Mode C both. See [brand-look.md](references/brand-look.md).
+- **Design companion**: use `/frontend-design` for palette/type only — never replace product IA. See [companion-design-skills.md](references/companion-design-skills.md).
+- No Starbucks art on other brands. No「扫码进店 → …」hint unless asked.
+- Orders are **demo** (pickup code). No real payment unless user asks.
+- Never commit `.env` / API keys.
 
-## Materials the user should provide
+## Materials
 
-Collect missing items briefly; do not block if optional.
+Intake form: [materials.md](references/materials.md) · Menu shape: [menu-schema.md](references/menu-schema.md)
 
-**Required**
-- Store display name (zh + optional en)
-- At least 4–8 menu items with prices
-- One LLM key for polish (prefer `ZHIPU_API_KEY`, model `glm-4-flash`)
+**Blocking (ask if missing):** store name (zh), ≥4 priced items.  
+**For polish on Vercel:** `ZHIPU_API_KEY` (optional locally — local-fallback works).  
+**Visual:** color taste and/or logo + hero paths. If neither given, invent a dark tea-friendly palette and show hex before coding (unless user said 直接做).
 
-**Optional**
-- Hours, address, table/QR examples
-- Categories, option groups (size/ice/sweetness)
-- Social links (Xiaohongshu / TikTok / Instagram / Official site)
-- **Visual / background materials** (see below)
-- GitHub username, Vercel team (if not already logged in)
-
-### Visual / background materials (often forgotten)
-
-Layout shell is **fixed** (一点点-style black page). Brand look is **flexible**:
-
-- **Mode A**: user describes color taste → AI designs a palette (show hex tokens first)
-- **Mode B**: user uploads logo + hero/page background → wire into `assets/` + CSS
-- **Mode C**: both (upload logo + AI palette)
-
-Details: [references/brand-look.md](brand-look.md)  
-Shell rules: [references/visual-shell.md](references/visual-shell.md)  
-Popular design companion skills: [references/companion-design-skills.md](references/companion-design-skills.md)
-
-If `/frontend-design` is installed, **always prefer it** as the only design companion for inventing palette/type — then apply into this shell (do not replace the product IA).
-
-Intake checklist: [references/materials.md](references/materials.md)  
-Menu schema: [references/menu-schema.md](references/menu-schema.md)  
-XHS publish notes: [references/xhs-publish.md](references/xhs-publish.md)
-
-## One-shot workflow (follow in order)
-
-Copy this checklist and tick as you go:
+## Full workflow
 
 ```text
-- [ ] 1. Locate template/
-- [ ] 2. Create project folder from template
-- [ ] 3. Fill menu.json + index social links from materials
-- [ ] 4. Write .env (local) — never commit secrets
-- [ ] 5. npm install && npm start — smoke test
-- [ ] 6. Init git + push NEW or EXISTING GitHub repo
-- [ ] 7. vercel link + env + --prod
-- [ ] 8. Disable Vercel Authentication / Deployment Protection
-- [ ] 9. Set Root Directory if monorepo; verify CSS loads
-- [ ] 10. Give user public URLs + QR URL pattern
+- [ ] 1 Copy template → working folder
+- [ ] 2 Apply materials (menu + brand look + socials)
+- [ ] 3 .env (if key provided)
+- [ ] 4 npm install && npm start — smoke
+- [ ] 5 GitHub push
+- [ ] 6 Vercel prod + public (no auth wall) + includeFiles
+- [ ] 7 Hand off URLs
 ```
 
-### 1) Locate template
-
-From this skill repo:
-
-```bash
-# skill repo root contains template/
-ls template/package.json template/menu.json template/order.html
-```
-
-If the user only installed the skill folder without `template/`, clone:
-
-```bash
-git clone https://github.com/Ricardonifish/scan-order-review-skill.git
-```
-
-### 2) Create working app
-
-```bash
-cp -R template my-store-link
-cd my-store-link
-npm install
-```
-
-On Windows PowerShell:
+### 1) Scaffold (Windows)
 
 ```powershell
 Copy-Item -Recurse template my-store-link
@@ -105,94 +61,69 @@ cd my-store-link
 npm install
 ```
 
-### 3) Apply materials
+### 2) Apply materials
 
-1. Edit `menu.json` (store + categories + items + optionGroups).
-2. Update social URLs / labels in `index.html` if provided.
-3. Apply **brand look** ([references/brand-look.md](references/brand-look.md)):
-   - If color-only: propose palette → map CSS variables → retint hero
-   - If uploads: save under `assets/`, set logo + hero background-image, ensure `includeFiles`
-   - Prefer `/frontend-design` for art direction when available
-4. Keep shell: black page + white Rate cards ([references/visual-shell.md](references/visual-shell.md)).
-5. Keep bilingual fields when possible (`name` / `nameZh`).
-6. Do **not** add homepage hint text like `扫码进店 → 网页点单 → …` unless asked.
-7. Do **not** reuse Starbucks cup/logo for a non-Starbucks brand.
+1. `menu.json` — store, categories, items, optionGroups ([menu-schema.md](references/menu-schema.md)).
+2. `index.html` — wordmark, socials, logo img if uploaded.
+3. Brand look ([brand-look.md](references/brand-look.md)):
+   - Colors → propose 4–6 tokens → CSS variables → retint hero/buttons.
+   - Uploads → `assets/logo.*`, `assets/hero.*` → wire CSS; add to `vercel.json` `includeFiles`.
+   - Call `/frontend-design` when inventing look.
+4. Keep bilingual `name` / `nameZh` when possible.
 
-### 4) Env
-
-Copy `.env.example` → `.env`:
+### 3) Env
 
 ```env
 ZHIPU_API_KEY=...
 ZHIPU_MODEL=glm-4-flash
 ```
 
-### 5) Local smoke
+### 4) Smoke
 
-```bash
+```powershell
 npm start
 # http://localhost:5173/
 # http://localhost:5173/order.html?from=qr&table=A8
-# POST /api/orders with a sample cart should return pickup code
 ```
 
-Confirm `styles.css` and `order.css` load (not a white unstyled page).
+Must pass: CSS loads (not white unstyled HTML); add-to-cart + submit order returns code; compose page opens.
 
-### 6) GitHub
+### 5) GitHub
 
-```bash
+```powershell
 git init
 git add .
 git commit -m "Initial scan-order-review store page."
 gh repo create <name> --public --source=. --remote=origin --push
 ```
 
-If creating under an existing monorepo, put the app in a subfolder and remember Vercel Root Directory.
+Monorepo: set Vercel **Root Directory** to the app folder.
 
-### 7) Vercel deploy
+### 6) Vercel
 
-```bash
-npx vercel login
+```powershell
 npx vercel link --yes
-# add envs for production + preview
-printf '%s' "$ZHIPU_API_KEY" | npx vercel env add ZHIPU_API_KEY production
-printf '%s' "glm-4-flash" | npx vercel env add ZHIPU_MODEL production
+# pipe secrets into: npx vercel env add ZHIPU_API_KEY production
 npx vercel --prod --yes
 ```
 
-Critical:
+Critical: `includeFiles` for html/css/js/`menu.json`/`assets/**`; disable Deployment Protection / Vercel Authentication; QR URL `https://<app>.vercel.app/order.html?from=qr&table=A8`.
 
-- `vercel.json` must `includeFiles` static assets (`*.css`, `menu.json`, html/js) or CSS 404s.
-- Disable **Vercel Authentication** on the project so QR users are not blocked.
-- Public URL pattern: `https://<project>.vercel.app/order.html?from=qr&table=A8`
+### 7) Hand off
 
-### 8) Hand off to user
-
-Return:
-
-1. Home URL  
-2. Order QR URL (with example table)  
-3. Compose/review URL  
-4. What was filled from their materials  
-5. Reminder: rotate any keys pasted in chat  
+Return: home URL · order QR URL · compose URL · palette/assets used · remind key rotation if pasted in chat.
 
 ## Architecture (do not invent a parallel stack)
 
 | Piece | Path |
 |-------|------|
 | Home | `index.html`, `styles.css` |
-| Order UI | `order.html`, `order.css`, `order.js` |
-| Menu | `menu.json` via `GET /api/menu` |
-| Orders | `POST /api/orders` → demo store in `data/orders.json` or `/tmp` on Vercel |
-| Reviews | `compose.html` + `/api/polish` + `/api/publish` |
-| XHS open | `https://creator.xiaohongshu.com/publish/imgNote` + clipboard |
+| Order | `order.html`, `order.css`, `order.js` |
+| Menu | `menu.json` → `GET /api/menu` |
+| Orders | `POST /api/orders` |
+| Reviews | `compose.*` + `/api/polish` + `/api/publish` |
+| XHS | copy + `https://creator.xiaohongshu.com/publish/imgNote` |
 
-Orders are **demo** (pickup code, no real payment) unless user explicitly asks to integrate payments.
+## Xiaohongshu
 
-## When user only wants edits
-
-If the app already exists, skip scaffold/deploy: just edit `menu.json` / UI and redeploy.
-
-## Optional Xiaohongshu CDP auto-fill
-
-Only if user asks for browser auto-fill. Prefer project copy+open handoff first. See [references/xhs-publish.md](references/xhs-publish.md). Draft-by-default; never click 发布 unless user says 直接发布 / publish now.
+Default = clipboard + open publish page. CDP auto-fill only if user asks. [xhs-publish.md](references/xhs-publish.md).
