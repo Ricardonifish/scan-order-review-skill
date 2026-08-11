@@ -41,15 +41,17 @@ Collect missing items briefly; do not block if optional.
 
 ### Visual / background materials (often forgotten)
 
-Layout shell is **fixed** (一点点-style). Brand assets change.
+Layout shell is **fixed** (一点点-style black page). Brand look is **flexible**:
 
-Collect if available:
-- Primary (and optional secondary) brand hex colors
-- Hero/banner background image path or URL
-- Circular logo image path or URL
-- Short note for hero art (cup / tea mug / custom)
+- **Mode A**: user describes color taste → AI designs a palette (show hex tokens first)
+- **Mode B**: user uploads logo + hero/page background → wire into `assets/` + CSS
+- **Mode C**: both (upload logo + AI palette)
 
-Rules: [references/visual-shell.md](references/visual-shell.md)
+Details: [references/brand-look.md](brand-look.md)  
+Shell rules: [references/visual-shell.md](references/visual-shell.md)  
+Popular design companion skills: [references/companion-design-skills.md](references/companion-design-skills.md)
+
+If `/frontend-design` is installed, use it when inventing palette/type — then apply into this shell (do not replace the product IA).
 
 Intake checklist: [references/materials.md](references/materials.md)  
 Menu schema: [references/menu-schema.md](references/menu-schema.md)  
@@ -107,10 +109,14 @@ npm install
 
 1. Edit `menu.json` (store + categories + items + optionGroups).
 2. Update social URLs / labels in `index.html` if provided.
-3. Apply **visual shell**: keep black page + white Rate cards; swap hero/logo/wordmark/primary color from materials ([references/visual-shell.md](references/visual-shell.md)).
-4. Keep bilingual fields when possible (`name` / `nameZh`).
-5. Do **not** add homepage hint text like `扫码进店 → 网页点单 → …` unless asked.
-6. Do **not** reuse Starbucks green cup art for a non-Starbucks brand.
+3. Apply **brand look** ([references/brand-look.md](references/brand-look.md)):
+   - If color-only: propose palette → map CSS variables → retint hero
+   - If uploads: save under `assets/`, set logo + hero background-image, ensure `includeFiles`
+   - Prefer `/frontend-design` for art direction when available
+4. Keep shell: black page + white Rate cards ([references/visual-shell.md](references/visual-shell.md)).
+5. Keep bilingual fields when possible (`name` / `nameZh`).
+6. Do **not** add homepage hint text like `扫码进店 → 网页点单 → …` unless asked.
+7. Do **not** reuse Starbucks cup/logo for a non-Starbucks brand.
 
 ### 4) Env
 
