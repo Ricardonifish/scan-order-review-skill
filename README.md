@@ -15,10 +15,14 @@ template/                   # 可直接复制部署的网页模板
 
 ```text
 请读取并遵循本仓库 skills/scan-order-review/SKILL.md。
+同时如已安装则调用 /frontend-design 帮忙做色板与视觉方向。
 以 template/ 为模板，根据我下面的材料生成项目并部署到 Vercel（公开可访问）。
+视觉：颜色你来配 或 我上传了 Logo/背景（见材料第 7 项）。
 材料：
 （粘贴 skills/scan-order-review/references/materials.md 里的填写结果）
 ```
+
+推荐一起安装的广泛设计 skill：见 `skills/scan-order-review/references/companion-design-skills.md`（优先 **frontend-design**）。
 
 ## 在 Cursor 里安装
 
