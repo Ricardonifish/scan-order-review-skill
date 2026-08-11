@@ -1,48 +1,39 @@
-# Companion design skills (widely used)
+# Companion design skill (chosen default)
 
-Install these **alongside** `scan-order-review` when you want stronger auto web design / art direction.
+## Default: `frontend-design` (Anthropic)
 
-## Most widely used (start here)
+**This is the single recommended companion** for scan-order-review.
 
-| Skill | Why | Install |
-|-------|-----|---------|
-| **frontend-design** | Anthropic official; skills.sh top design skill (hundreds of thousands of installs). Anti-AI-slop UI, palette/type/layout planning before code. | Copy from [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/frontend-design) → `~/.cursor/skills/frontend-design` or `npx skills add anthropics/skills --skill frontend-design` |
-| **web-design-guidelines** | Vercel; high leaderboard activity for a11y/UX audit of UI code | From skills.sh / Vercel skills |
-| **impeccable** | Community successor/expansion of frontend-design ideas (if frontend-design stub redirects) | `npx impeccable skills update` or GitHub `pbakaus/impeccable` |
+Why it fits this product:
+- User often says「颜色你帮我设计」→ it forces a real palette/type plan before code
+- Avoids generic AI landing-page looks (purple gradients, Inter, random marketing pages)
+- Works for any brand while **scan-order-review keeps the fixed shell** (black page, hero, round logo, white Rate cards)
+- Most widely installed design skill on skills.sh / Anthropic skills
 
-## Also useful for branding / art
+### How to use together
 
-| Skill | Use for |
-|-------|---------|
-| **brand-guidelines** (anthropics/skills) | Apply consistent brand voice + visual rules |
-| **theme-factory** (anthropics/skills) | Theme / token variations |
-| **canvas-design** (anthropics/skills) | Poster-like / visual composition artifacts |
-| **algorithmic-art** (anthropics/skills) | Generative art backgrounds (optional hero texture) |
-| **design-taste-frontend** | Extra anti-slop frontend taste (skills.sh) |
-| **ui-ux-pro-max** / **high-end-visual-design** | Heavier visual polish skills on skills.sh |
+1. Invoke `/frontend-design` when inventing or refining look (Mode A colors, or hybrid with logo).
+2. Invoke `/scan-order-review` for menu, order flow, assets wiring, and deploy.
+3. Never let frontend-design replace the product IA with a new landing page — only tokens: color, type accents, hero treatment inside the shell.
 
-## How to combine with this product skill
+### Install
 
-1. User fills materials (colors **or** uploads) per [brand-look.md](brand-look.md).  
-2. Agent runs **frontend-design** (or brand-guidelines) to propose palette/type.  
-3. Agent applies result into `scan-order-review` **fixed shell** (black page, hero, logo, white Rate cards).  
-4. Deploy.
-
-Do not let frontend-design replace the scan-order IA with a random landing page — only the **look tokens** inside the shell.
-
-## Quick install (Cursor, Windows)
+From [anthropics/skills → frontend-design](https://github.com/anthropics/skills/tree/main/skills/frontend-design):
 
 ```powershell
 git clone --depth 1 https://github.com/anthropics/skills.git "$env:TEMP\anthropic-skills"
 Copy-Item -Recurse "$env:TEMP\anthropic-skills\skills\frontend-design" "$HOME\.cursor\skills\frontend-design"
-Copy-Item -Recurse "$env:TEMP\anthropic-skills\skills\brand-guidelines" "$HOME\.cursor\skills\brand-guidelines"
-Copy-Item -Recurse "$env:TEMP\anthropic-skills\skills\theme-factory" "$HOME\.cursor\skills\theme-factory"
 ```
 
-Then in Agent chat:
+Or: `npx skills add anthropics/skills --skill frontend-design`
 
-```text
-/frontend-design
-/scan-order-review
-品牌：…… 颜色你来配 / 或附上 logo 与背景图路径
-```
+## Not the default (optional later)
+
+| Skill | When you might add it |
+|-------|------------------------|
+| brand-guidelines | Multi-page brand voice docs |
+| theme-factory | Many alternate themes |
+| web-design-guidelines | A11y audit after UI ships |
+| impeccable | If your agent only has the deprecated frontend-design stub |
+
+Do **not** install a pile of design skills by default — one strong companion + this product skill is enough.
