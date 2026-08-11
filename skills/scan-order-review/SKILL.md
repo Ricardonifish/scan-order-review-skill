@@ -51,7 +51,7 @@ Details: [references/brand-look.md](brand-look.md)
 Shell rules: [references/visual-shell.md](references/visual-shell.md)  
 Popular design companion skills: [references/companion-design-skills.md](references/companion-design-skills.md)
 
-If `/frontend-design` is installed, use it when inventing palette/type — then apply into this shell (do not replace the product IA).
+If `/frontend-design` is installed, **always prefer it** as the only design companion for inventing palette/type — then apply into this shell (do not replace the product IA).
 
 Intake checklist: [references/materials.md](references/materials.md)  
 Menu schema: [references/menu-schema.md](references/menu-schema.md)  
