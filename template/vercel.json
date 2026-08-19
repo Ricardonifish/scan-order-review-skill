@@ -11,6 +11,7 @@
           "compose.html",
           "posts.html",
           "order.html",
+          "brand.css",
           "styles.css",
           "compose.css",
           "order.css",
@@ -18,7 +19,8 @@
           "compose.js",
           "script.js",
           "order.js",
-          "menu.json"
+          "menu.json",
+          "assets/**"
         ]
       }
     }

@@ -18,48 +18,71 @@ const LLM_MODEL =
   "Qwen/Qwen3-8B";
 const DATA_DIR =
   process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
-    ? path.join("/tmp", "starbucks-link-data")
+    ? path.join("/tmp", "scan-order-review-data")
     : path.join(__dirname, "data");
 const POSTS_FILE = path.join(DATA_DIR, "posts.json");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
+const FEEDBACK_FILE = path.join(DATA_DIR, "feedback.json");
 const MENU_FILE = path.join(__dirname, "menu.json");
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(__dirname));
 
-const PLATFORMS = {
-  xiaohongshu: {
-    name: "小红书",
-    style:
-      "写成一篇可直接发的小红书笔记：先给吸引人的标题，再写口语化正文，适当用emoji，结尾给3-6个话题标签（#标签）。语气真诚、像真实顾客，不要硬广。",
-    // 创作者中心 · 图文笔记发布页（需登录后可直接粘贴）
-    publishUrl: "https://creator.xiaohongshu.com/publish/imgNote",
-  },
-  google: {
-    name: "Google Reviews",
-    style:
-      "写成一条可直接提交的 Google 商家评价：英文为主，1-3 段，真实具体，提到饮品/服务/氛围中的细节，结尾可给总体感受。不要标签，不要emoji堆砌。",
-    publishUrl: "https://www.google.com/maps/search/?api=1&query=Starbucks",
-  },
-  instagram: {
-    name: "Instagram",
-    style:
-      "写成一条可直接发的 Instagram 帖文 caption：先写有画面感的短文，再空一行，最后给 5-10 个相关 hashtag。语气轻松、有品牌感但不假。",
-    publishUrl: "https://www.instagram.com/",
-  },
-  yelp: {
-    name: "Yelp",
-    style:
-      "写成一条可直接发的 Yelp 评价：英文，包含评分感受、到店体验、推荐菜品/饮品、是否愿意再来。结构清晰，像真实食评。",
-    publishUrl: "https://www.yelp.com/biz/starbucks-seattle-88",
-  },
-};
+function getStoreBrand() {
+  try {
+    const store = readMenu().store || {};
+    const nameZh = String(store.nameZh || store.name || "本店").trim();
+    const nameEn = String(store.name || store.nameZh || "the shop").trim();
+    const shortZh = nameZh.replace(/\s*[·•|].*$/, "").trim() || "本店";
+    const shortEn = nameEn.replace(/\s+Demo.*$/i, "").trim() || "Shop";
+    const mapsQuery = encodeURIComponent(shortEn || shortZh);
+    return { nameZh, nameEn, shortZh, shortEn, mapsQuery };
+  } catch {
+    return {
+      nameZh: "本店",
+      nameEn: "the shop",
+      shortZh: "本店",
+      shortEn: "Shop",
+      mapsQuery: "cafe",
+    };
+  }
+}
+
+function getPlatforms(brand = getStoreBrand()) {
+  return {
+    xiaohongshu: {
+      name: "小红书",
+      style:
+        "写成一篇可直接发的小红书笔记：先给吸引人的标题，再写口语化正文，适当用emoji，结尾给3-6个话题标签（#标签）。语气真诚、像真实顾客，不要硬广。",
+      publishUrl: "https://creator.xiaohongshu.com/publish/imgNote",
+    },
+    google: {
+      name: "Google Reviews",
+      style:
+        "写成一条可直接提交的 Google 商家评价：英文为主，1-3 段，真实具体，提到饮品/服务/氛围中的细节，结尾可给总体感受。不要标签，不要emoji堆砌。",
+      publishUrl: `https://www.google.com/maps/search/?api=1&query=${brand.mapsQuery}`,
+    },
+    instagram: {
+      name: "Instagram",
+      style:
+        "写成一条可直接发的 Instagram 帖文 caption：先写有画面感的短文，再空一行，最后给 5-10 个相关 hashtag。语气轻松、有品牌感但不假。",
+      publishUrl: "https://www.instagram.com/",
+    },
+    yelp: {
+      name: "Yelp",
+      style:
+        "写成一条可直接发的 Yelp 评价：英文，包含评分感受、到店体验、推荐菜品/饮品、是否愿意再来。结构清晰，像真实食评。",
+      publishUrl: `https://www.yelp.com/search?find_desc=${brand.mapsQuery}`,
+    },
+  };
+}
 
 function ensureDataStore() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(POSTS_FILE)) fs.writeFileSync(POSTS_FILE, "[]", "utf8");
   if (!fs.existsSync(ORDERS_FILE)) fs.writeFileSync(ORDERS_FILE, "[]", "utf8");
+  if (!fs.existsSync(FEEDBACK_FILE)) fs.writeFileSync(FEEDBACK_FILE, "[]", "utf8");
 }
 
 function readPosts() {
@@ -111,13 +134,15 @@ function resolveApiKey() {
 }
 
 function buildSystemPrompt(platformKey, lang = "zh") {
-  const platform = PLATFORMS[platformKey] || PLATFORMS.xiaohongshu;
+  const brand = getStoreBrand();
+  const platforms = getPlatforms(brand);
+  const platform = platforms[platformKey] || platforms.xiaohongshu;
   const langRule =
     lang === "en"
       ? "Output language: English (except Xiaohongshu may mix light Chinese hashtags if natural)."
       : "输出语言：中文为主（Google/Yelp/Instagram 可按平台习惯用英文）。";
   return [
-    "你是星巴克顾客评价润色助手，不是广告文案机器人。",
+    `你是「${brand.shortZh}」顾客评价润色助手，不是广告文案机器人。`,
     `目标平台：${platform.name}。`,
     platform.style,
     langRule,
@@ -331,6 +356,17 @@ function detectTopics(text) {
     [/卡布|cappuccino/i, "卡布奇诺"],
     [/冷萃|cold brew/i, "冷萃"],
     [/星冰乐|frappuccino/i, "星冰乐"],
+    [/牛乳茶|奶茶|milk\s*tea/i, "牛乳茶"],
+    [/乌龙|oolong/i, "乌龙"],
+    [/黑糖/i, "黑糖厚乳"],
+    [/青提/i, "青提绿茶"],
+    [/柠檬/i, "柠檬茶"],
+    [/水蜜桃|peach/i, "水蜜桃乌龙"],
+    [/龙井/i, "龙井"],
+    [/茉莉/i, "茉莉花茶"],
+    [/果茶|fruit\s*tea/i, "果茶"],
+    [/珍珠|boba|pearl/i, "珍珠"],
+    [/奶盖|cheese\s*foam/i, "奶盖"],
     [/抹茶/i, "抹茶"],
     [/红茶|茶底|茶拿铁/i, "茶饮"],
   ];
@@ -339,7 +375,7 @@ function detectTopics(text) {
   }
 
   const negative =
-    /不喜欢|不好喝|难吃|难喝|踩雷|劝退|失望|糟糕|无语|别去|太甜|太苦|一般|差评|后悔|难喝|难以下咽|店面.*不|环境.*差|装修.*差|贵|慢|差/.test(
+    /不喜欢|不好喝|难吃|难喝|踩雷|劝退|失望|糟糕|无语|别去|差评|后悔|难以下咽|店面.{0,6}不|环境.{0,6}差|装修.{0,6}差|(?<![不没])太甜|(?<![不没])太苦|(?<![不没])太贵|服务慢|态度差/.test(
       text
     );
   const positive =
@@ -358,8 +394,9 @@ function detectTopics(text) {
   };
 }
 
-function pickTitle(topics, draft) {
+function pickTitle(topics, draft, brand) {
   const drink = topics.drinks[0];
+  const shop = brand.shortZh;
   const pool = [];
 
   if (topics.negative) {
@@ -367,11 +404,11 @@ function pickTitle(topics, draft) {
     if (topics.mentionsVibe) pool.push("店面氛围差点意思");
     pool.push("这次体验一言难尽", "说实话有点失望", "先吐槽为敬");
   } else {
-    if (drink && topics.positive) pool.push(`${drink}真的可以｜星巴克小记`, `今日份${drink}｜Starbucks`);
-    if (drink) pool.push(`点了杯${drink}来续命`, `${drink}打卡 · Starbucks`);
+    if (drink && topics.positive) pool.push(`${drink}真的可以｜${shop}小记`, `今日份${drink}｜${shop}`);
+    if (drink) pool.push(`点了杯${drink}来续命`, `${drink}打卡 · ${shop}`);
     if (topics.mentionsSeat) pool.push("找到一个适合久坐的角落");
-    if (topics.mentionsVibe) pool.push("这家星巴克气氛刚刚好");
-    pool.push("来杯咖啡，慢半拍", "Starbucks 随手记");
+    if (topics.mentionsVibe) pool.push(`这家${shop}气氛刚刚好`);
+    pool.push("来一杯，慢半拍", `${shop} 随手记`);
   }
 
   const seed = `${draft}|${topics.negative ? "neg" : "pos"}|${Date.now() % 7}`;
@@ -379,7 +416,8 @@ function pickTitle(topics, draft) {
   return pool[idx];
 }
 
-function expandBody(draft, topics, feedback) {
+function expandBody(draft, topics, feedback, brand) {
+  const shop = brand.shortZh;
   const combined = `${draft}\n${feedback || ""}`;
   const liveTopics = detectTopics(combined);
   const sentences = draft
@@ -393,9 +431,9 @@ function expandBody(draft, topics, feedback) {
   if (liveTopics.negative) {
     const s = (sentences[0] || draft).replace(/[。！？]$/, "");
     if (drink) {
-      parts.push(`今天在星巴克点了${drink}。${s}。`);
+      parts.push(`今天在${shop}点了${drink}。${s}。`);
     } else {
-      parts.push(`今天去了趟星巴克。${s}。`);
+      parts.push(`今天去了趟${shop}。${s}。`);
     }
     if (/店面|环境|装修|门店/.test(combined)) {
       parts.push("店面也没给我加分，待着不舒服。");
@@ -404,9 +442,9 @@ function expandBody(draft, topics, feedback) {
   } else if (sentences.length === 1 && sentences[0].length < 24) {
     const s = sentences[0].replace(/[。！？]$/, "");
     if (drink) {
-      parts.push(`路过星巴克，点了一杯${drink}。${s}，一口下去很对味。`);
+      parts.push(`路过${shop}，点了一杯${drink}。${s}，一口下去很对味。`);
     } else {
-      parts.push(`今天去了趟星巴克。${s}，整体感觉值得记一笔。`);
+      parts.push(`今天去了趟${shop}。${s}，整体感觉值得记一笔。`);
     }
     if (liveTopics.mentionsSeat) {
       parts.push("有位置能坐下慢慢喝，对我这种想歇脚的人刚刚好。");
@@ -440,17 +478,22 @@ function expandBody(draft, topics, feedback) {
   return body.replace(/\s+/g, " ").replace(/\s+([，。！？])/g, "$1").trim();
 }
 
-function buildTags(topics, platform) {
+function brandTag(brand, lang = "zh") {
+  const raw = lang === "en" ? brand.shortEn : brand.shortZh;
+  return `#${String(raw).replace(/[\s·•.|/\\]+/g, "")}`;
+}
+
+function buildTags(topics, platform, brand) {
   if (platform === "instagram") {
-    const tags = ["#Starbucks", "#CoffeeTime"];
+    const tags = [brandTag(brand, "en"), "#DrinkTime"];
     if (topics.drinks[0]) tags.push(`#${topics.drinks[0].replace(/\s/g, "")}`);
     if (topics.negative) tags.push("#HonestReview");
     else tags.push("#CafeVibes", "#DailyCup");
     return tags.slice(0, 8).join(" ");
   }
-  const tags = ["#星巴克", "#Starbucks"];
+  const tags = [brandTag(brand, "zh"), brandTag(brand, "en")];
   if (topics.drinks[0]) tags.push(`#${topics.drinks[0]}`);
-  tags.push("#咖啡");
+  tags.push("#饮品");
   if (topics.negative) tags.push("#真实评价", "#踩雷避雷");
   else {
     tags.push("#探店");
@@ -460,14 +503,18 @@ function buildTags(topics, platform) {
 }
 
 function localPolish({ platform, draft, feedback, previous, revision = 0 }) {
-  const source = (draft || "").trim() || (previous || "").trim() || "今天在星巴克点了一杯咖啡";
+  const brand = getStoreBrand();
+  const source =
+    (draft || "").trim() ||
+    (previous || "").trim() ||
+    `今天在${brand.shortZh}点了一杯`;
   const topics = detectTopics(`${source}\n${feedback || ""}\n${previous || ""}`);
   const reviseSeed = `${previous || ""}|${feedback || ""}|${revision}|${Date.now()}`;
 
   if (platform === "xiaohongshu") {
-    const title = pickTitle(topics, reviseSeed);
-    let body = expandBody(source, topics, feedback);
-    const tags = buildTags(topics, platform);
+    const title = pickTitle(topics, reviseSeed, brand);
+    let body = expandBody(source, topics, feedback, brand);
+    const tags = buildTags(topics, platform, brand);
 
     if (previous || revision > 0) {
       const round = Number(revision) || 1;
@@ -475,7 +522,6 @@ function localPolish({ platform, draft, feedback, previous, revision = 0 }) {
         ? ["吐槽向", "真实差评", "避雷记录", "不太满意"]
         : ["换个说法", "再写一版", "补充感受", "重新整理"];
       const prefix = prefixes[(round - 1) % prefixes.length];
-      // 再改时追加一句，确保肉眼可见变化
       if (topics.negative) {
         body += round % 2 === 0 ? "这次不会安利给朋友。" : "个人体验，仅供参考。";
       } else {
@@ -487,17 +533,17 @@ function localPolish({ platform, draft, feedback, previous, revision = 0 }) {
   }
 
   if (platform === "instagram") {
-    const body = expandBody(source, topics, feedback);
-    return [`${body}`, "", buildTags(topics, "instagram")].join("\n");
+    const body = expandBody(source, topics, feedback, brand);
+    return [`${body}`, "", buildTags(topics, "instagram", brand)].join("\n");
   }
 
   if (platform === "yelp") {
-    const drink = topics.drinks[0] || "coffee";
+    const drink = topics.drinks[0] || "drink";
     const tone = topics.negative ? "Disappointing" : topics.positive ? "Enjoyable" : "Mixed";
     return [
-      `${tone} Starbucks stop — ${drink}`,
+      `${tone} ${brand.shortEn} stop — ${drink}`,
       "",
-      expandBody(source, topics, feedback),
+      expandBody(source, topics, feedback, brand),
       "",
       topics.negative
         ? "Would not reorder this one."
@@ -508,7 +554,7 @@ function localPolish({ platform, draft, feedback, previous, revision = 0 }) {
   }
 
   return [
-    expandBody(source, topics, feedback),
+    expandBody(source, topics, feedback, brand),
     "",
     topics.negative
       ? "Not my favorite visit — sharing an honest take."
@@ -538,7 +584,30 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.get("/api/platforms", (_req, res) => {
-  res.json(PLATFORMS);
+  res.json(getPlatforms());
+});
+
+app.get("/api/brand", (_req, res) => {
+  res.json({ ok: true, brand: getStoreBrand() });
+});
+
+app.post("/api/orders/status", (req, res) => {
+  try {
+    const { id, status } = req.body || {};
+    const allowed = ["received", "making", "ready", "done", "cancelled"];
+    if (!id || !allowed.includes(status)) {
+      return res.status(400).json({ error: "id / status 无效" });
+    }
+    const orders = readOrders();
+    const hit = orders.find((o) => o.id === id);
+    if (!hit) return res.status(404).json({ error: "订单不存在" });
+    hit.status = status;
+    hit.updatedAt = new Date().toISOString();
+    writeOrders(orders);
+    res.json({ ok: true, order: hit });
+  } catch (error) {
+    res.status(500).json({ error: error.message || "状态更新失败" });
+  }
 });
 
 app.post("/api/polish", async (req, res) => {
@@ -600,12 +669,14 @@ app.post("/api/publish", (req, res) => {
       return res.status(400).json({ error: "没有可发布的内容" });
     }
 
-    const platformMeta = PLATFORMS[platform] || PLATFORMS.xiaohongshu;
+    const brand = getStoreBrand();
+    const platforms = getPlatforms(brand);
+    const platformMeta = platforms[platform] || platforms.xiaohongshu;
     const post = {
       id: `post_${Date.now()}`,
       platform,
       platformName: platformMeta.name,
-      title: title || `${platformMeta.name} · Starbucks`,
+      title: title || `${platformMeta.name} · ${brand.shortZh}`,
       draft,
       content: String(content).trim(),
       publishUrl: platformMeta.publishUrl,
@@ -684,6 +755,7 @@ app.post("/api/orders", (req, res) => {
       code: String(1000 + (readOrders().length % 9000)),
       storeId: menu.store?.id || "demo",
       table: String(body.table || "").slice(0, 20),
+      fulfillment: body.fulfillment === "takeaway" ? "takeaway" : "dine_in",
       remark: String(body.remark || "").slice(0, 200),
       items: normalized,
       total,
@@ -722,7 +794,7 @@ app.get("*", (req, res, next) => {
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`Starbucks Link running at http://localhost:${PORT}`);
+    console.log(`Scan-order-review running at http://localhost:${PORT}`);
     console.log(`Compose page: http://localhost:${PORT}/compose.html`);
     console.log(`LLM: ${LLM_MODEL} @ ${LLM_BASE_URL}`);
   });

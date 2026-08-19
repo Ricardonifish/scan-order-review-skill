@@ -11,7 +11,8 @@
   let menu = null;
   let activeCat = null;
   let cart = loadCart();
-  let draft = null; // current spec sheet item
+  let draft = null;
+  let fulfillment = table ? "dine_in" : "takeaway";
 
   const $ = (id) => document.getElementById(id);
 
@@ -30,9 +31,119 @@
     return lang === "zh" ? obj.tagZh || obj.tag || "" : obj.tag || obj.tagZh || "";
   }
 
+  function formatAllergens(item) {
+    const a = item?.allergens;
+    if (!a) return "";
+    return Array.isArray(a) ? a.join(lang === "zh" ? "、" : ", ") : String(a);
+  }
+
+  function openOrderCount(orders) {
+    return (orders || []).filter((o) => {
+      const st = o.status || "received";
+      return st !== "ready" && st !== "done" && st !== "cancelled";
+    }).length;
+  }
+
+  async function refreshQueueHint() {
+    const el = $("queueHint");
+    if (!el || !menu) return;
+    const store = menu.store || {};
+    if (store.queueHint === false) {
+      el.hidden = true;
+      return;
+    }
+    let open = 0;
+    try {
+      const res = await fetch("/api/orders");
+      const data = await res.json();
+      open = openOrderCount(data.orders || []);
+    } catch {
+      open = 0;
+    }
+    const per = Number(store.waitMinutesPerOrder) || 4;
+    const mins = open * per;
+    if (!open) {
+      el.textContent = lang === "zh" ? "现在下单，很快制作" : "Order now — little to no wait";
+    } else {
+      el.textContent =
+        lang === "zh"
+          ? `前方约 ${open} 单制作中 · 预计约 ${Math.max(per, mins)} 分钟`
+          : `About ${open} orders ahead · ~${Math.max(per, mins)} min`;
+    }
+    el.hidden = false;
+  }
+
+  const STATUS_FLOW = ["received", "making", "ready", "done"];
+  function statusLabel(st) {
+    const map =
+      lang === "zh"
+        ? { received: "已接单", making: "制作中", ready: "请取餐", done: "已完成", cancelled: "已取消" }
+        : { received: "Received", making: "Making", ready: "Ready", done: "Done", cancelled: "Cancelled" };
+    return map[st] || st;
+  }
+
   function money(n) {
     const cur = menu?.currency || "¥";
     return `${cur}${Number(n).toFixed(Number.isInteger(n) ? 0 : 2)}`;
+  }
+
+  function resetFeedbackGate() {
+    const gate = $("feedbackGate");
+    const priv = $("feedbackPrivate");
+    const review = $("reviewAfterOrder");
+    if (gate) gate.hidden = false;
+    if (priv) {
+      priv.hidden = true;
+      const ta = $("feedbackPrivateText");
+      if (ta) ta.value = "";
+    }
+    if (review) review.hidden = true;
+    const q = $("feedbackQ");
+    if (q) q.textContent = lang === "zh" ? "这次体验怎么样？" : "How was it?";
+  }
+
+  function syncFulfillChips() {
+    document.querySelectorAll(".fulfill-chip").forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("data-fulfill") === fulfillment);
+    });
+    const hint = $("payHint");
+    if (hint) {
+      hint.textContent =
+        lang === "zh"
+          ? "演示单：提交后出示取餐号，到吧台取餐/结账"
+          : "Demo: show pickup code at the counter to pay & collect";
+    }
+  }
+
+  function bindFeedbackGate() {
+    $("feedbackGood")?.addEventListener("click", () => {
+      $("feedbackGate").hidden = true;
+      $("feedbackPrivate").hidden = true;
+      const link = $("reviewAfterOrder");
+      if (link) {
+        link.hidden = false;
+        window.location.href = link.href;
+      }
+    });
+    $("feedbackBad")?.addEventListener("click", () => {
+      $("feedbackGate").hidden = true;
+      $("reviewAfterOrder").hidden = true;
+      $("feedbackPrivate").hidden = false;
+    });
+    $("feedbackPrivateSend")?.addEventListener("click", async () => {
+      const text = ($("feedbackPrivateText")?.value || "").trim();
+      try {
+        await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ table, text, sentiment: "negative" }),
+        });
+      } catch {
+        /* ignore */
+      }
+      toast(lang === "zh" ? "已收到，我们内部改进" : "Thanks — we'll improve in-house");
+      $("successSheet").hidden = true;
+    });
   }
 
   function toast(msg) {
@@ -76,7 +187,19 @@
   }
 
   function optionGroupsFor(categoryId) {
-    return (menu.optionGroups || []).filter((g) => (g.appliesTo || []).includes(categoryId));
+    return (menu.optionGroups || []).filter((g) => {
+      const scope = g.appliesTo;
+      if (!scope || !scope.length) return true; // no appliesTo → all categories
+      return scope.includes(categoryId);
+    });
+  }
+
+  function groupChoices(g) {
+    return g.choices || g.options || [];
+  }
+
+  function choicePrice(c) {
+    return Number(c.price ?? c.priceDelta) || 0;
   }
 
   async function loadMenu() {
@@ -89,11 +212,12 @@
     renderCats();
     renderMenu();
     renderCartBar();
+    refreshQueueHint();
   }
 
   function renderStore() {
     const store = menu.store || {};
-    $("storeName").textContent = tName(store) || "Starbucks";
+    $("storeName").textContent = tName(store) || "川渝小炒肉";
     $("storeKicker").textContent = fromQr
       ? lang === "zh"
         ? "扫码点单"
@@ -107,7 +231,8 @@
     bits.push(lang === "zh" ? store.hoursZh || store.hours : store.hours || store.hoursZh);
     $("storeSub").textContent = bits.filter(Boolean).join(" · ");
     $("langBtn").textContent = lang === "zh" ? "EN" : "中文";
-    document.title = lang === "zh" ? "扫码点单 · Starbucks" : "Order · Starbucks";
+    const brand = tName(store) || (lang === "zh" ? "川渝小炒肉" : "Chuanyu Stir-Fry");
+    document.title = lang === "zh" ? `扫码点单 · ${brand}` : `Order · ${brand}`;
   }
 
   function renderCats() {
@@ -137,19 +262,33 @@
       sec.id = `sec-${cat.id}`;
       sec.innerHTML = `<h2>${tName(cat)}</h2>`;
       (cat.items || []).forEach((item) => {
+        const soldOut = item.available === false;
         const row = document.createElement("article");
-        row.className = "item";
-        const tag = tTag(item);
+        row.className = `item${soldOut ? " sold-out" : ""}`;
+        const tag = soldOut
+          ? lang === "zh"
+            ? "售罄"
+            : "Sold out"
+          : tTag(item);
+        const allergen = formatAllergens(item);
+        const diet = item.diet || item.dietZh || "";
+        const dietLabel = lang === "zh" ? item.dietZh || item.diet || "" : item.diet || item.dietZh || "";
+        const art = item.image
+          ? `<div class="item-art img" style="background-image:url('${item.image}')"></div>`
+          : `<div class="item-art" style="background:${item.color || "#1E3932"}">${item.emoji || "★"}</div>`;
         row.innerHTML = `
-          <div class="item-art" style="background:${item.color || "#1E3932"}">${item.emoji || "★"}</div>
+          ${art}
           <div class="item-body">
             <h3>${tName(item)}${tag ? `<span class="tag">${tag}</span>` : ""}</h3>
             <p>${tDesc(item)}</p>
+            ${allergen || dietLabel ? `<p class="item-meta">${[allergen && (lang === "zh" ? `含${allergen}` : `Contains ${allergen}`), dietLabel].filter(Boolean).join(" · ")}</p>` : ""}
             <p class="item-price">${money(item.price)}</p>
           </div>
-          <button type="button" class="add-btn" aria-label="添加">+</button>
+          <button type="button" class="add-btn" aria-label="${soldOut ? "售罄" : "添加"}" ${soldOut ? "disabled" : ""}>+</button>
         `;
-        row.querySelector(".add-btn").addEventListener("click", () => openSpec(item, cat));
+        if (!soldOut) {
+          row.querySelector(".add-btn").addEventListener("click", () => openSpec(item, cat));
+        }
         sec.appendChild(row);
       });
       root.appendChild(sec);
@@ -160,7 +299,7 @@
     const groups = optionGroupsFor(category.id);
     const selected = {};
     groups.forEach((g) => {
-      selected[g.id] = g.choices?.[0]?.id || null;
+      selected[g.id] = groupChoices(g)[0]?.id || null;
     });
     draft = { item, category, selected, qty: 1, note: "" };
     $("specHero").style.background = item.color || "#1E3932";
@@ -184,11 +323,12 @@
       box.innerHTML = `<h3>${tName(g)}</h3>`;
       const row = document.createElement("div");
       row.className = "opt-row";
-      (g.choices || []).forEach((c) => {
+      (groupChoices(g) || []).forEach((c) => {
         const chip = document.createElement("button");
         chip.type = "button";
         chip.className = `chip${draft.selected[g.id] === c.id ? " active" : ""}`;
-        const extra = c.price ? ` +${money(c.price)}` : "";
+        const delta = choicePrice(c);
+        const extra = delta ? ` +${money(delta)}` : "";
         chip.textContent = `${tName(c)}${extra}`;
         chip.addEventListener("click", () => {
           draft.selected[g.id] = c.id;
@@ -207,8 +347,8 @@
     let price = Number(draft.item.price) || 0;
     const groups = optionGroupsFor(draft.category.id);
     groups.forEach((g) => {
-      const choice = (g.choices || []).find((c) => c.id === draft.selected[g.id]);
-      if (choice) price += Number(choice.price) || 0;
+      const choice = groupChoices(g).find((c) => c.id === draft.selected[g.id]);
+      if (choice) price += choicePrice(choice);
     });
     return price;
   }
@@ -217,7 +357,7 @@
     const labels = {};
     const groups = optionGroupsFor(draft.category.id);
     groups.forEach((g) => {
-      const choice = (g.choices || []).find((c) => c.id === draft.selected[g.id]);
+      const choice = groupChoices(g).find((c) => c.id === draft.selected[g.id]);
       if (choice) labels[g.id] = tName(choice);
     });
     return labels;
@@ -315,6 +455,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           table,
+          fulfillment,
           remark: ($("orderRemark").value || "").trim(),
           items: cart.map((x) => ({
             id: x.id,
@@ -334,13 +475,25 @@
       $("cartSheet").hidden = true;
       $("successCode").textContent =
         lang === "zh" ? `取餐号 ${data.order.code}` : `Pickup #${data.order.code}`;
+      const modeLabel =
+        fulfillment === "takeaway"
+          ? lang === "zh"
+            ? "外带"
+            : "Takeaway"
+          : lang === "zh"
+            ? "堂食"
+            : "Dine-in";
       $("successMsg").textContent =
-        data.message || (lang === "zh" ? "门店已收到订单" : "Order received");
+        lang === "zh"
+          ? `${data.message || "门店已收到"} · ${modeLabel} · 凭取餐号到吧台（演示单，未在线收款）`
+          : `${data.message || "Order received"} · ${modeLabel} · Show code at counter (demo, no online pay)`;
+      resetFeedbackGate();
       if (data.next?.reviewUrl) {
         $("reviewAfterOrder").href = data.next.reviewUrl;
       }
       $("successSheet").hidden = false;
       loadOrders();
+      refreshQueueHint();
     } catch (err) {
       toast(err.message || "下单失败");
     } finally {
@@ -356,7 +509,8 @@
       const list = data.orders || [];
       const wrap = $("ordersList");
       if (!list.length) {
-        wrap.innerHTML = `<p class="empty">${lang === "zh" ? "还没有订单，先去点一杯吧" : "No orders yet"}</p>`;
+        wrap.innerHTML = `<p class="empty">${lang === "zh" ? "还没有单，先点个回锅肉" : "No orders yet"}</p>`;
+        refreshQueueHint();
         return;
       }
       wrap.innerHTML = "";
@@ -364,16 +518,42 @@
         const card = document.createElement("article");
         card.className = "order-card";
         const when = new Date(o.createdAt).toLocaleString();
+        const st = o.status || "received";
+        const mode = o.fulfillment === "takeaway" ? (lang === "zh" ? "外带" : "Takeaway") : (lang === "zh" ? "堂食" : "Dine-in");
         const lines = (o.items || [])
           .map((i) => `<li>${i.name} × ${i.qty}</li>`)
           .join("");
         card.innerHTML = `
-          <h3>${lang === "zh" ? "取餐号" : "#"} ${o.code}</h3>
-          <p class="meta">${when}${o.table ? ` · ${lang === "zh" ? "桌号" : "Table"} ${o.table}` : ""} · ${o.currency || "¥"}${o.total}</p>
+          <div class="order-card-top">
+            <h3>${lang === "zh" ? "取餐号" : "#"} ${o.code}</h3>
+            <button type="button" class="status-chip" data-id="${o.id}" data-status="${st}">${statusLabel(st)}</button>
+          </div>
+          <p class="meta">${when} · ${mode}${o.table ? ` · ${lang === "zh" ? "桌号" : "Table"} ${o.table}` : ""} · ${o.currency || "¥"}${o.total}</p>
           <ul>${lines}</ul>
+          <p class="meta dim">${lang === "zh" ? "店员点击状态：接单→制作→请取餐→完成" : "Staff: tap status to advance"}</p>
         `;
+        card.querySelector(".status-chip")?.addEventListener("click", async () => {
+          const cur = card.querySelector(".status-chip").getAttribute("data-status") || "received";
+          const idx = STATUS_FLOW.indexOf(cur);
+          const next = STATUS_FLOW[Math.min(idx + 1, STATUS_FLOW.length - 1)];
+          if (next === cur) return;
+          try {
+            const r = await fetch("/api/orders/status", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: o.id, status: next }),
+            });
+            const j = await r.json();
+            if (!r.ok) throw new Error(j.error || "更新失败");
+            loadOrders();
+            refreshQueueHint();
+          } catch (e) {
+            toast(e.message || "更新失败");
+          }
+        });
         wrap.appendChild(card);
       });
+      refreshQueueHint();
     } catch {
       /* ignore */
     }
@@ -433,13 +613,23 @@
     $("addCartBtn").addEventListener("click", addToCart);
 
     $("openCartBtn").addEventListener("click", () => {
+      syncFulfillChips();
       renderCartSheet();
       $("cartSheet").hidden = false;
     });
     $("checkoutBtn").addEventListener("click", () => {
+      syncFulfillChips();
       renderCartSheet();
       $("cartSheet").hidden = false;
     });
+    document.querySelectorAll(".fulfill-chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        fulfillment = btn.getAttribute("data-fulfill") || "takeaway";
+        syncFulfillChips();
+      });
+    });
+    bindFeedbackGate();
+    syncFulfillChips();
     $("clearCart").addEventListener("click", () => {
       cart = [];
       saveCart();

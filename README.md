@@ -1,59 +1,30 @@
 # Scan · Order · Review Skill
 
-给另一个 AI（Cursor / Claude Code 等）安装后：**你只提供店铺/菜单材料 → AI 按 skill 一键生成并部署**扫码点单 + 评价网页。
-
-## 仓库结构
+材料 → **按店设计一套界面** → 部署扫码点单 + 评价种草。  
+模板只提供功能，不提供「所有店共用皮肤」。
 
 ```text
-skills/scan-order-review/   # Agent Skill（SKILL.md）
-template/                   # 可直接复制部署的网页模板
+skills/scan-order-review/
+template/                   # 功能骨架；新店请重做版式
 ```
 
-## 给另一个 AI 的最短指令
-
-把下面整段复制给已能读取本仓库的 AI：
+## 丢给另一个 AI
 
 ```text
-请读取并遵循本仓库 skills/scan-order-review/SKILL.md。
-以 template/ 为模板，根据我下面的材料生成项目并部署到 Vercel（公开可访问）。
+请遵循 skills/scan-order-review/SKILL.md。
+复制 template/ 只保留点单/评价 API。
+必须用 /frontend-design，并从 references/design-directions.md 选一个方向，
+重写首页（不要黑底圆Logo白胶囊套娃）。
+只有我说「跟模板一样」才只换皮。
 材料：
-（粘贴 skills/scan-order-review/references/materials.md 里的填写结果）
+（粘贴 references/materials.md）
 ```
 
-## 在 Cursor 里安装
-
-**方式 A — 克隆后当用户 skill**
+## 安装
 
 ```powershell
 git clone https://github.com/Ricardonifish/scan-order-review-skill.git
-Copy-Item -Recurse scan-order-review-skill\skills\scan-order-review $HOME\.cursor\skills\scan-order-review
+Copy-Item -Recurse .\scan-order-review-skill\skills\scan-order-review $HOME\.cursor\skills\scan-order-review
 ```
 
-然后在 Agent 聊天输入：
-
-```text
-/scan-order-review
-```
-
-**方式 B — 打开本仓库当工作区**  
-直接让 Agent：`阅读 skills/scan-order-review/SKILL.md 并按材料部署`。
-
-## 本地预览模板
-
-```powershell
-cd template
-npm install
-npm start
-```
-
-- 首页：http://localhost:5173/  
-- 点单：http://localhost:5173/order.html?from=qr&table=A8  
-
-## 安全
-
-- 不要把 `.env` / API Key 提交进 git  
-- 聊天里发过的 Key 建议事后轮换  
-
-## 来源
-
-模板来自实习项目 `starbucks-link`；小红书发布要点参考开源 skill（见 `references/xhs-publish.md`）。
+聊天：`/scan-order-review`

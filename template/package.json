@@ -1,8 +1,8 @@
 {
-  "name": "starbucks-link",
+  "name": "scan-order-review-template",
   "version": "1.0.0",
   "private": true,
-  "description": "Starbucks link-in-bio with AI review composer",
+  "description": "Scan-order-review template: link-in-bio + QR order + AI review polish",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

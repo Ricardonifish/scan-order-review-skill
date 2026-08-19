@@ -1,163 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Starbucks — Links</title>
+    <title>川渝小炒肉</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&family=ZCOOL+QingKe+HuangYou&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="brand.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body data-title-key="doc.title">
-    <button type="button" class="lang-switch" data-i18n-lang-btn aria-label="Switch language">EN</button>
+    <button type="button" class="lang-switch" data-i18n-lang-btn aria-label="切换语言">EN</button>
 
-    <div class="page">
-      <header class="hero" aria-label="Starbucks">
-        <div class="hero-art" aria-hidden="true">
-          <div class="hero-steam"></div>
-          <div class="hero-cup">
-            <span class="cup-logo">★</span>
-          </div>
-          <div class="hero-beans"></div>
+    <div class="stall">
+      <header class="lightbox" aria-label="川渝小炒肉">
+        <img class="lightbox-bg" src="assets/hero.svg" alt="" />
+        <div class="lightbox-face">
+          <p class="lightbox-kicker">巷子口 · 铁锅现炒</p>
+          <h1 class="lightbox-name">川渝小炒肉</h1>
+          <p class="lightbox-sub">回锅 · 蒜苗 · 不怕辣</p>
         </div>
-        <p class="hero-brand">STARBUCKS</p>
       </header>
 
-      <div class="logo-wrap">
-        <div class="logo" aria-hidden="true">
-          <svg viewBox="0 0 120 120" role="img" aria-label="Starbucks">
-            <circle cx="60" cy="60" r="58" fill="#00704A" />
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#C2A661" stroke-width="3" />
-            <circle cx="60" cy="60" r="44" fill="#1E3932" />
-            <path
-              fill="#C2A661"
-              d="M60 22c-8 10-12 20-12 30 0 8 4 14 12 20 8-6 12-12 12-20 0-10-4-20-12-30zm0 54c-14 4-24 12-28 22h56c-4-10-14-18-28-22z"
-            />
-            <ellipse cx="60" cy="48" rx="10" ry="14" fill="#C2A661" />
-            <path
-              fill="#00704A"
-              d="M48 38c-6 2-10 8-10 14 2-2 6-4 10-4v-10zm24 0v10c4 0 8 2 10 4 0-6-4-12-10-14z"
-            />
-          </svg>
+      <p class="ticket">
+        扫码点菜，不用对着后厨吼。<strong>做好了报号到窗口拿。</strong>
+      </p>
+
+      <section class="board" aria-label="今日硬菜">
+        <h2 class="board-title">今日硬菜</h2>
+        <div class="board-row">
+          <article class="board-item"><span>回锅肉</span><b>¥28</b></article>
+          <article class="board-item"><span>蒜苗炒肉</span><b>¥26</b></article>
+          <article class="board-item"><span>青椒肉丝</span><b>¥24</b></article>
+          <article class="board-item"><span>麻婆豆腐</span><b>¥16</b></article>
         </div>
+      </section>
+
+      <a class="order-lamp" href="order.html?from=qr">
+        <span class="order-lamp-en">SCAN</span>
+        <span class="order-lamp-zh">扫码点菜</span>
+        <span class="order-lamp-hint">堂食报桌号 · 外带走窗口</span>
+      </a>
+
+      <div class="tile-row">
+        <a class="tile" href="order.html?from=qr&table=A8">
+          <small>堂食</small>
+          <strong>桌码示例 A8</strong>
+        </a>
+        <a class="tile" href="order.html?from=qr">
+          <small>外带</small>
+          <strong>门店码点单</strong>
+        </a>
       </div>
 
-      <main class="content">
-        <section class="socials" data-i18n-aria="social.aria" aria-label="Follow us">
-          <details class="social">
-            <summary>
-              <span class="social-icon rednote" aria-hidden="true">小</span>
-              <span class="social-name">rednote</span>
-              <span class="chevron" aria-hidden="true"></span>
-            </summary>
-            <div class="social-panel">
-              <div>
-                <p class="social-handle">Starbucks China</p>
-                <p class="social-hint" data-i18n="social.rednote.hint">Daily drinks & store stories</p>
-              </div>
-              <a class="btn btn-outline" href="https://www.xiaohongshu.com/user/profile/5c908b6d00000000100287d3" target="_blank" rel="noopener" data-i18n="btn.follow">Follow</a>
-            </div>
-          </details>
+      <section class="notice" id="rate">
+        <h2>吃完评两句</h2>
+        <p class="notice-lead">满意再发；不爽跟老板说，不往网上扔。</p>
+        <a class="notice-btn" href="compose.html?platform=xiaohongshu">写小红书</a>
+        <div class="notice-links">
+          <a href="compose.html?platform=google">Google</a>
+          <a href="compose.html?platform=instagram">Instagram</a>
+          <a href="compose.html?platform=yelp">Yelp</a>
+        </div>
+        <p class="incentive">发笔记下次堂食送一碟花生米（演示文案，到店跟店员说一声）。</p>
+      </section>
 
-          <details class="social">
-            <summary>
-              <span class="social-icon tiktok" aria-hidden="true">♪</span>
-              <span class="social-name">Tik Tok</span>
-              <span class="chevron" aria-hidden="true"></span>
-            </summary>
-            <div class="social-panel">
-              <div>
-                <p class="social-handle">@Starbucks</p>
-                <p class="social-hint" data-i18n="social.tiktok.hint">Brew tips & behind the bar</p>
-              </div>
-              <a class="btn btn-outline" href="https://www.tiktok.com/@starbucks" target="_blank" rel="noopener" data-i18n="btn.follow">Follow</a>
-            </div>
-          </details>
+      <section class="paper">
+        <h2>红纸告示</h2>
+        <a class="paper-line" href="https://www.xiaohongshu.com/" target="_blank" rel="noopener">
+          小红书 · 川渝小炒肉（演示）
+        </a>
+        <p class="paper-meta">美团团购券拿到窗口核，系统不验券。</p>
+      </section>
 
-          <details class="social">
-            <summary>
-              <span class="social-icon ig" aria-hidden="true"></span>
-              <span class="social-name">Instagram</span>
-              <span class="chevron" aria-hidden="true"></span>
-            </summary>
-            <div class="social-panel">
-              <div>
-                <p class="social-handle">@starbucks</p>
-                <p class="social-hint" data-i18n="social.ig.hint">Seasonal sips & café moments</p>
-              </div>
-              <a class="btn btn-outline" href="https://www.instagram.com/starbucks/" target="_blank" rel="noopener" data-i18n="btn.follow">Follow</a>
-            </div>
-          </details>
-        </section>
-
-        <section class="rate" data-i18n-aria="rate.aria" aria-label="Rate us">
-          <h2 class="section-title">
-            <span data-i18n="rate.title">Rate us</span>
-            <span class="hearts" aria-hidden="true">
-              <i></i><i></i><i></i>
-            </span>
-          </h2>
-
-          <div class="rate-grid">
-            <article class="rate-card">
-              <div class="rate-logo rednote-logo">小红书</div>
-              <h3 data-i18n="rate.xhs">Publish a note</h3>
-              <p data-i18n="rate.sub">Rate your experience</p>
-              <a class="btn btn-solid" href="compose.html?platform=xiaohongshu" data-i18n="btn.publish">Publish</a>
-            </article>
-
-            <article class="rate-card">
-              <div class="rate-logo google-logo" aria-hidden="true">G</div>
-              <h3 data-i18n="rate.google">Google reviews</h3>
-              <p data-i18n="rate.sub">Rate your experience</p>
-              <a class="btn btn-solid" href="compose.html?platform=google" data-i18n="btn.review">Review</a>
-            </article>
-
-            <article class="rate-card">
-              <div class="rate-logo ig-logo" aria-hidden="true"></div>
-              <h3 data-i18n="rate.ig">Instagram Post</h3>
-              <p data-i18n="rate.sub">Rate your experience</p>
-              <a class="btn btn-solid" href="compose.html?platform=instagram" data-i18n="btn.review">Review</a>
-            </article>
-
-            <article class="rate-card">
-              <div class="rate-logo yelp-logo" aria-hidden="true">Y</div>
-              <h3 data-i18n="rate.yelp">Yelp reviews</h3>
-              <p data-i18n="rate.sub">Rate your experience</p>
-              <a class="btn btn-solid" href="compose.html?platform=yelp" data-i18n="btn.review">Review</a>
-            </article>
-          </div>
-        </section>
-
-        <section class="order">
-          <p class="order-eyebrow" data-i18n="order.eyebrow">Everyone is drinking</p>
-          <a class="order-cta" href="order.html?from=qr">
-            <span data-i18n="order.cta">Order here</span>
-            <span aria-hidden="true">→</span>
-          </a>
-        </section>
-
-        <section class="about">
-          <h2>STARBUCKS</h2>
-          <p data-i18n="about.body">
-            From handcrafted espresso to seasonal favorites, Starbucks brings the
-            third place experience to more than 38,000 stores worldwide —
-            one cup at a time.
-          </p>
-        </section>
-
-        <section class="contact">
-          <h2 data-i18n="contact.title">Contact Me</h2>
-          <p data-i18n="contact.hours">Open hours: 6:00am – 9:00pm</p>
-        </section>
-      </main>
-
-      <footer class="footer">
-        <p data-i18n="footer.note">Demo link page · Not an official Starbucks site</p>
+      <footer class="alley">
+        <p>营业 11:00 – 21:30 · 演示巷 18 号（巷子口铁皮棚）</p>
+        <p data-i18n="footer.note">演示店 · 未在线收款</p>
       </footer>
     </div>
 

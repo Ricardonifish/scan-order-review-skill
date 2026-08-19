@@ -1,15 +1,28 @@
 const params = new URLSearchParams(window.location.search);
 const platform = params.get("platform") || "xiaohongshu";
 
-/** 各平台「发帖/写评价」入口（前端同步打开，避免被弹窗拦截） */
+/** 各平台「发帖/写评价」入口（会按 /api/brand 刷新 Google/Yelp 查询） */
 const PUBLISH_URLS = {
   xiaohongshu: "https://creator.xiaohongshu.com/publish/imgNote",
-  google: "https://www.google.com/maps/search/?api=1&query=Starbucks",
+  google: "https://www.google.com/maps/search/?api=1&query=cafe",
   instagram: "https://www.instagram.com/",
-  yelp: "https://www.yelp.com/biz/starbucks-seattle-88",
+  yelp: "https://www.yelp.com/",
 };
 
 let revision = 0;
+
+async function loadBrandPublishUrls() {
+  try {
+    const res = await fetch("/api/brand");
+    const data = await res.json();
+    const brand = data.brand || {};
+    const q = brand.mapsQuery || encodeURIComponent(brand.shortEn || brand.shortZh || "cafe");
+    PUBLISH_URLS.google = `https://www.google.com/maps/search/?api=1&query=${q}`;
+    PUBLISH_URLS.yelp = `https://www.yelp.com/search?find_desc=${q}`;
+  } catch {
+    /* keep defaults */
+  }
+}
 
 function $(id) {
   return document.getElementById(id);
@@ -305,10 +318,15 @@ function bindEvents() {
   syncPlatformLabel();
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bindEvents);
-} else {
+async function bootCompose() {
+  await loadBrandPublishUrls();
   bindEvents();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootCompose);
+} else {
+  bootCompose();
 }
 
 // 方便控制台调试

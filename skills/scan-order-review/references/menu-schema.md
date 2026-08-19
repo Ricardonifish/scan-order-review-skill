@@ -1,15 +1,26 @@
 # menu.json schema
 
-Edit this file to change what customers see after scanning.
+Canonical fields match `template/order.js`. Prefer **`choices` + `price`**.  
+Also accepted: `options` + `priceDelta` (normalized at runtime).
 
 ## Top level
 
 ```json
 {
-  "store": { "id": "", "name": "", "nameZh": "", "hours": "", "hoursZh": "", "address": "", "addressZh": "", "tagline": "", "taglineZh": "" },
+  "store": {
+    "id": "",
+    "name": "",
+    "nameZh": "",
+    "hours": "",
+    "hoursZh": "",
+    "address": "",
+    "addressZh": "",
+    "tagline": "",
+    "taglineZh": ""
+  },
   "currency": "¥",
-  "categories": [ /* Category */ ],
-  "optionGroups": [ /* OptionGroup */ ]
+  "categories": [],
+  "optionGroups": []
 }
 ```
 
@@ -17,60 +28,79 @@ Edit this file to change what customers see after scanning.
 
 ```json
 {
-  "id": "classic",
-  "name": "Classic Coffee",
-  "nameZh": "经典咖啡",
-  "items": [ /* Item */ ]
+  "id": "milk-tea",
+  "name": "Milk Tea",
+  "nameZh": "牛乳茶",
+  "items": []
 }
 ```
 
-`id` must be stable; `optionGroups.appliesTo` references it.
+`id` must be stable; `optionGroups.appliesTo` references category `id`s.
 
 ## Item
 
 ```json
 {
-  "id": "latte",
-  "name": "Caffè Latte",
-  "nameZh": "拿铁",
-  "desc": "Espresso with steamed milk",
-  "descZh": "丝滑牛奶裹住浓缩",
-  "price": 32,
-  "tag": "NEW",
-  "tagZh": "上新",
-  "color": "#00704A",
-  "emoji": "🥛"
+  "id": "classic-milk",
+  "name": "Classic Milk Tea",
+  "nameZh": "经典牛乳茶",
+  "desc": "Assam black tea with fresh milk",
+  "descZh": "阿萨姆红茶配鲜牛乳",
+  "price": 16,
+  "tag": "HOT",
+  "tagZh": "人气",
+  "color": "#1a6b5c",
+  "emoji": "🧋"
 }
 ```
 
-- `id`: kebab-case, unique across menu
-- `price`: number (base price before option add-ons)
-- `color` / `emoji`: visual tile when no product photo
-- empty `tag` / `tagZh` hides badge
+- `id`: kebab-case, unique across menu  
+- `price`: number (base before option add-ons)  
+- `color` / `emoji`: tile when no photo  
+- empty `tag` / `tagZh` hides badge  
+- `available: false`: sold out — greyed out, cannot add (omit or `true` = on sale)  
+- `allergens`: string or string[] — e.g. `"牛奶,大豆"` / `["dairy","soy"]` shown under desc  
+- `diet`: optional tags e.g. `"少糖可选"` / `vegan`  
+- `image`: optional URL/path under `assets/` for menu thumb  
 
-## OptionGroup
+## Store extras (optional on `store`)
+
+```json
+"waitMinutesPerOrder": 4,
+"queueHint": true
+```
+
+Used for lite「预计等待」= `openOrders × waitMinutesPerOrder` (min 0).
 
 ```json
 {
-  "id": "size",
-  "name": "Size",
-  "nameZh": "杯型",
+  "id": "sugar",
+  "name": "Sugar",
+  "nameZh": "糖度",
   "required": true,
-  "appliesTo": ["classic", "seasonal"],
+  "appliesTo": ["milk-tea", "fruit"],
   "choices": [
-    { "id": "tall", "name": "Tall", "nameZh": "中杯", "price": 0 },
-    { "id": "grande", "name": "Grande", "nameZh": "大杯", "price": 3 }
+    { "id": "s100", "name": "100%", "nameZh": "正常糖", "price": 0 },
+    { "id": "s70", "name": "70%", "nameZh": "少糖", "price": 0 }
   ]
 }
 ```
 
-Food-only categories: omit them from `appliesTo`.
+| Field | Rule |
+|-------|------|
+| `appliesTo` | Category ids. **Omit or `[]` → applies to all categories.** |
+| `choices` | Preferred. Alias: `options`. |
+| choice `price` | Add-on yuan. Alias: `priceDelta`. |
+| `required` | UI hint; first choice is default selected. |
 
-## QR URL examples
+Food-only groups: list only food category ids in `appliesTo`.
+
+## QR URLs（商家要贴两种）
 
 ```
-/order.html?from=qr&table=A8
-/scan?table=A8
+/order.html?from=qr              # 门店码 · 外带/自提
+/order.html?from=qr&table=A8     # 桌码 · 堂食
+/scan?table=A8                   # 短链 → order
 ```
 
 Table shows in the order header and is stored on submitted orders.

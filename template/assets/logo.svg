@@ -1,0 +1,10 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="川渝小炒肉">
+  <rect width="120" height="120" rx="8" fill="#9b1f18"/>
+  <rect x="8" y="8" width="104" height="104" fill="none" stroke="#f5c542" stroke-width="4"/>
+  <text x="60" y="52" text-anchor="middle" fill="#f5c542" font-size="22" font-family="SimHei, Microsoft YaHei, sans-serif" font-weight="700">川渝</text>
+  <text x="60" y="82" text-anchor="middle" fill="#fff6ea" font-size="18" font-family="SimHei, Microsoft YaHei, sans-serif">炒肉</text>
+  <circle cx="22" cy="22" r="5" fill="#f5c542"/>
+  <circle cx="98" cy="22" r="5" fill="#f5c542"/>
+  <circle cx="22" cy="98" r="5" fill="#f5c542"/>
+  <circle cx="98" cy="98" r="5" fill="#f5c542"/>
+</svg>

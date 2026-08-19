@@ -1,0 +1,31 @@
+/**
+ * 川渝小炒肉 — 夜市灯箱
+ * 不是模板换皮：首页已按灯牌重做。
+ */
+:root {
+  --pageBg: #1c1014;
+  --surface: #2b171c;
+  --primary: #e23d2a;
+  --primary-deep: #9b1f18;
+  --accent: #f5c542;
+  --card: #fff6ea;
+  --mutedText: #c9a89a;
+  --ink: #fff3e6;
+  --foam: #fff6ea;
+  --neon: #ff7a3a;
+  --hero-image: none;
+
+  --radius-pill: 4px;
+  --radius-card: 6px;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-display: "ZCOOL QingKe HuangYou", "黑体", sans-serif;
+
+  --sb-green: var(--primary);
+  --sb-green-deep: var(--primary-deep);
+  --sb-green-mid: var(--primary);
+  --sb-foam: var(--foam);
+  --sb-gold: var(--accent);
+  --sb-ink: var(--ink);
+  --sb-muted: var(--mutedText);
+  --sb-card: var(--card);
+}

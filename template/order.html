@@ -3,13 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>扫码点单 · Starbucks</title>
+    <title>扫码点菜 · 川渝小炒肉</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&family=ZCOOL+QingKe+HuangYou&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="brand.css" />
     <link rel="stylesheet" href="order.css" />
   </head>
   <body>
@@ -17,7 +18,7 @@
       <a class="back" href="index.html" aria-label="返回首页">←</a>
       <div class="store-meta">
         <p class="store-kicker" id="storeKicker">扫码点单</p>
-        <h1 id="storeName">Starbucks</h1>
+        <h1 id="storeName">川渝小炒肉</h1>
         <p class="store-sub" id="storeSub"></p>
       </div>
       <button type="button" class="lang-btn" id="langBtn">EN</button>
@@ -31,6 +32,7 @@
 
     <main class="order-main">
       <section id="panelMenu" class="panel active">
+        <p class="queue-hint" id="queueHint" hidden></p>
         <aside class="cats" id="catList" aria-label="分类"></aside>
         <div class="menu-scroll" id="menuScroll">
           <div id="menuSections"></div>
@@ -39,14 +41,14 @@
 
       <section id="panelOrders" class="panel">
         <div class="orders-wrap" id="ordersList">
-          <p class="empty">还没有订单，先去点一杯吧</p>
+          <p class="empty">还没有单，先点个回锅肉</p>
         </div>
       </section>
 
       <section id="panelReview" class="panel">
         <div class="review-card">
-          <h2>喝完了？写一句评价</h2>
-          <p>AI 帮你润色成可发的小红书 / Google / Instagram / Yelp 文案</p>
+          <h2>吃完了？评两句</h2>
+          <p>AI 帮你写成能发的小红书 / Google 文案</p>
           <a class="btn solid" href="compose.html?platform=xiaohongshu&from=order">去写评价</a>
           <a class="btn ghost" href="index.html#rate">查看全部评价入口</a>
         </div>
@@ -70,7 +72,7 @@
         <p class="spec-desc" id="specDesc"></p>
         <div id="specOptions"></div>
         <label class="note-label" for="itemNote">备注</label>
-        <input id="itemNote" type="text" maxlength="40" placeholder="例如：少冰、分开打包" />
+        <input id="itemNote" type="text" maxlength="40" placeholder="例如：免香菜、多蒜" />
         <div class="spec-footer">
           <div class="qty">
             <button type="button" id="qtyMinus" aria-label="减少">−</button>
@@ -91,8 +93,13 @@
           <button type="button" class="text-btn" id="clearCart">清空</button>
         </div>
         <div id="cartItems"></div>
+        <div class="fulfill-row" role="group" aria-label="取餐方式">
+          <button type="button" class="fulfill-chip active" data-fulfill="dine_in" id="fulfillDine">堂食</button>
+          <button type="button" class="fulfill-chip" data-fulfill="takeaway" id="fulfillTake">外带</button>
+        </div>
         <label class="note-label" for="orderRemark">整单备注</label>
         <input id="orderRemark" type="text" maxlength="80" placeholder="例如：打包、尽快" />
+        <p class="pay-hint" id="payHint">演示单：提交后出示取餐号，到吧台取餐/结账</p>
         <button type="button" class="btn solid full" id="submitOrderBtn">提交订单</button>
       </div>
     </div>
@@ -104,8 +111,20 @@
         <p class="ok-kicker">下单成功</p>
         <h2 id="successCode">取餐号 —</h2>
         <p id="successMsg">门店已收到订单</p>
+        <div class="feedback-gate" id="feedbackGate">
+          <p class="feedback-q" id="feedbackQ">这次体验怎么样？</p>
+          <div class="feedback-row">
+            <button type="button" class="btn solid" id="feedbackGood">满意，去写评价</button>
+            <button type="button" class="btn ghost" id="feedbackBad">不太满意</button>
+          </div>
+        </div>
+        <div class="feedback-private" id="feedbackPrivate" hidden>
+          <p id="feedbackPrivateHint">感谢反馈。可以说一下哪里不顺？我们内部改进，不会发到公开平台。</p>
+          <textarea id="feedbackPrivateText" rows="3" placeholder="例如：太甜 / 等太久 / 座位…"></textarea>
+          <button type="button" class="btn solid" id="feedbackPrivateSend">提交给门店</button>
+        </div>
         <div class="success-actions">
-          <a class="btn solid" id="reviewAfterOrder" href="compose.html?platform=xiaohongshu&from=order">去写评价</a>
+          <a class="btn solid" id="reviewAfterOrder" href="compose.html?platform=xiaohongshu&from=order" hidden>去写评价</a>
           <button type="button" class="btn ghost" id="keepOrdering">继续点单</button>
         </div>
       </div>

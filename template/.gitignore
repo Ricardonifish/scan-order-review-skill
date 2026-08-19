@@ -5,4 +5,5 @@ node_modules/
 .vercel
 data/posts.json
 data/orders.json
+data/feedback.json
 *.log
